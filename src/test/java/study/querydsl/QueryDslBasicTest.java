@@ -1,5 +1,6 @@
 package study.querydsl;
 
+import com.fasterxml.jackson.databind.util.ArrayBuilders;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
@@ -9,6 +10,7 @@ import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.platform.commons.util.StringUtils;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Commit;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,9 +21,12 @@ import study.querydsl.entity.Member;
 import study.querydsl.entity.QMember;
 import study.querydsl.entity.Team;
 import javax.persistence.*;
+import javax.swing.text.html.Option;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
+
 import static com.querydsl.jpa.JPAExpressions.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static study.querydsl.entity.QMember.member;
@@ -654,6 +659,8 @@ public class QueryDslBasicTest {
         }
     }
 
+
+
     @Test //필드에 값을 바로꽂아버리기떄문에 getter setter 필요없음
     public void findDtoByField() {
 
@@ -668,6 +675,7 @@ public class QueryDslBasicTest {
             System.out.println("memberDto = " + memberDto);
         }
     }
+
 
     //각 이름과 ,나이의 평균을 나타내고싶을때(서브쿼리이용)
     //ExpressionUtils: 서브쿼리는 dto age 필드와 이름 매칭이 필요한데 ,  이를 위해서 ExpressionUtils.as 사용 (alias를 age로 하기위해)
@@ -696,6 +704,7 @@ public class QueryDslBasicTest {
     }
 
 
+
     //생성자방식
     //문제점 select안에 dto에없는 필드가 있다고해도 컴파일오류로 못잡음 런타임 오류가난다 그게문제
     //이문제를 아래 쿼리방식프로젝션이 해결 (컴파일시점에 잡아줌)
@@ -705,7 +714,8 @@ public class QueryDslBasicTest {
         List<UserDto> result = queryFactory
                 .select(Projections.constructor(UserDto.class,
                         member.username,
-                        member.age))
+                        member.age
+                ))
                 .from(member)
                 .fetch();
 
@@ -753,6 +763,7 @@ public class QueryDslBasicTest {
     }
 
 
+
     //동적쿼리 해결방법중 하나
     @Test
     public void dynamicQuery_BooleanBuilder() {
@@ -788,24 +799,80 @@ public class QueryDslBasicTest {
     }
 
     @Test
-    public void booleanBuilder2(){
+    public void 동적쿼리빌터(){
         String username = null;
         Integer age = null;
 
+       List<Member> memberList =  searchMemberDynamic(username,age);
 
+        for (Member member1 : memberList) {
+            System.out.println("member1 = " + member1);
+        }
+    }
 
-        List<Member> result =
-                queryFactory
+    private List<Member> searchMemberDynamic(String username, Integer age) {
+        BooleanBuilder builder = new BooleanBuilder();
+
+        if(username != null){
+            builder.and(member.username.eq(username));
+        }
+        if(age != null){
+            builder.and(member.age.eq(age));
+        }
+
+        return queryFactory
                 .selectFrom(member)
-                .where(nameAndAgeEq(username,age))
+                .where(builder)
+                .fetch();
+    }
+
+    @Test
+    public void booleanBuilderlamda(){
+        String username = null;
+        Integer age = null;
+
+        BooleanBuilder members = selectMemberQuery(username, age);
+
+        List<Member> result = queryFactory
+                .selectFrom(member)
+                .where(members)
                 .fetch();
 
         for (Member member1 : result) {
             System.out.println("member1 = " + member1);
         }
 
-
     }
+
+    private BooleanBuilder selectMemberQuery(String username, Integer age) {
+        return (usernameEqss(username).and(ageEqss(age)));
+    }
+
+    private BooleanBuilder usernameEqss(String username) {
+        return NullSafeBuilders(() -> member.username.eq(username));
+    }
+
+    private BooleanBuilder ageEqss(Integer age){
+        return NullSafeBuilders(() -> member.age.eq(age));
+    }
+
+    public static BooleanBuilder NullSafeBuilders(Supplier<BooleanExpression> o ){
+
+        try{
+            return new BooleanBuilder(o.get());
+        }catch (IllegalArgumentException e){
+            return new BooleanBuilder();
+        }
+
+        //return Optional.ofNullable(o.get()).map(BooleanBuilder::new).orElseThrow(IllegalArgumentException::new);
+    }
+
+    /**4742
+     *
+     * @param username
+     * @param age
+     * @return
+     */
 
     private BooleanBuilder nameAndAgeEq(String username, Integer age) {
         return (usernameEqs(username)).and(ageEqs(age));
@@ -888,46 +955,37 @@ public static BooleanBuilder nullSafeBuilder(Supplier<BooleanExpression> f) {
     //광고 상태가 isValid, 날짜가 IN : isServiceable
 
     //조립할수있는 장점이있음,재활용가능,
-    private BooleanExpression allEq(String usernameCond, Integer ageCond){
+    private BooleanExpression allEq(String usernameCond, Integer ageCond) {
 
        /* if(usernameCond == null){
             if(ageCond != null) return ageEq(ageCond);
             else return null;
         }*/
-        return(ageEq(ageCond)).and(usernameEq(usernameCond));
+        return (ageEq(ageCond)).and(usernameEq(usernameCond));
     }
-
 
     @Test
-    public void dynamicQuery_Whereparam2(){
-        String name = null;
+    public void BooleanExpression2() {
+        String username = "member1";
         Integer age = 10;
 
+        List<Member> memberList = selectQueryExpression(username, age);
+    }
 
-        List<Member> result = queryFactory
+    private List<Member> selectQueryExpression(String username, Integer age) {
+
+        return queryFactory
                 .selectFrom(member)
-                .where(allEqs(name, age))
+                .where(nameEq(username), aEq(age))
                 .fetch();
-
-        for (Member member1 : result) {
-            System.out.println("member1 = " + member1);
-        }
     }
 
-    private BooleanExpression agEq(Integer age) {
+    private BooleanExpression nameEq(String username) {
+        return username != null ? member.username.eq(username) : null;
+    }
+
+    private BooleanExpression aEq(Integer age) {
         return age != null ? member.age.eq(age) : null;
-
-    }
-
-
-    private BooleanExpression uNameEq(String name) {
-        return name != null ? member.username.eq(name) : null;
-
-    }
-
-    public  BooleanExpression allEqs(String name, Integer age) {
-        String a = Optional.ofNullable(name).orElseThrow(() -> new IllegalArgumentException("값이 없음"));
-        return uNameEq(a).and(agEq(age));
     }
 
     /**
@@ -960,7 +1018,6 @@ public static BooleanBuilder nullSafeBuilder(Supplier<BooleanExpression> f) {
         for (Member member1 : result) {
             System.out.println("member1 = " + member1);
         }
-
     }
 
 
