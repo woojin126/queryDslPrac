@@ -3,6 +3,7 @@ package study.querydsl.repository;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.BooleanOperation;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -124,24 +125,36 @@ public class MemberJpaRepository {
                         teamNameEq(condition.getTeamName()),
                         ageGoe(condition.getAgeGoe()),
                         ageLoe(condition.getAgeLoe()))
+                        //ageBetween(condition))
                 .fetch();
     }
-//메서드 위치변경 컨트롤 +쉬프트 위아래 방향키
-    // 타입을 BooleanExpression 으로하면 조합이가능
-    private BooleanExpression usernameEq(String username) {
-        return hasText(username) ? member.username.eq(username) : null;
+    /**
+    메서드 위치변경 컨트롤 +쉬프트 위아래 방향키
+    타입을 BooleanExpression 으로하면 조합이가능
+    재사용이 가능하다는것이 미친듯한 장점
+    */
+
+    private BooleanExpression ageBetween(MemberSearchCondition condition){ //이런식으로 조립도가능
+        return ageGoe(condition.getAgeGoe()).and(ageLoe(condition.getAgeLoe()));
+    }
+     private BooleanExpression usernameEq(String username) {
+        //return hasText(username) ? member.username.eq(username) : null;
+         return Optional.ofNullable(username).map(member.username::eq).orElse(null);
     }
 
     private BooleanExpression teamNameEq(String teamName) {
-        return hasText(teamName) ? team.name.eq(teamName) : null;
+        //return hasText(teamName) ? team.name.eq(teamName) : null;
+        return Optional.ofNullable(teamName).map(team.name::eq).orElse(null);
     }
 
     private BooleanExpression ageGoe(Integer ageGoe) {
-        return ageGoe != null ? member.age.goe(ageGoe) : null;
+        //return ageGoe != null ? member.age.goe(ageGoe) : null;
+        return Optional.ofNullable(ageGoe).map(member.age::goe).orElse(null);
     }
 
     private BooleanExpression ageLoe(Integer ageLoe) {
-        return ageLoe != null ? member.age.loe(ageLoe) : null;
+        //return ageLoe != null ? member.age.loe(ageLoe) : null;
+        return Optional.ofNullable(ageLoe).map(member.age::loe).orElse(null);
     }
 
 
@@ -160,12 +173,16 @@ public class MemberJpaRepository {
                 .leftJoin(member.team,team)
                 .where(eqUsername(condition.getUsername()),
                         eqTeamName(condition.getTeamName()),
-                        goeAge(condition.getAgeGoe()),
-                        loeAge(condition.getAgeLoe())
+                       /* goeAge(condition.getAgeGoe()),
+                        loeAge(condition.getAgeLoe())*/
+                        betweenAge(condition)
                         )
                 .fetch();
     }
 
+    private BooleanBuilder betweenAge(MemberSearchCondition condition){
+        return goeAge(condition.getAgeGoe()).and(loeAge(condition.getAgeLoe()));
+    }
     private BooleanBuilder eqUsername(String username){
         return NullSafeValid(() -> member.username.eq(username));
     }

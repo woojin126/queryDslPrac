@@ -1,0 +1,37 @@
+spring:
+  profiles:
+    active: test
+  datasource:
+    driver-class-name: oracle.jdbc.OracleDriver
+    url: jdbc:oracle:thin:@127.0.0.1:1521:xe
+    username: scott
+    password: tiger
+
+  devtools:
+    livereload:
+      enabled: true
+
+  freemarker:
+    cache: false
+
+  jpa:
+    hibernate:
+      ddl-auto: create   #애플리케이션  실행시점에 내가가지고잇는 엔티티를지우고(테이블) 다시생성
+    properties:
+      hibernate:
+        #show_sql: true    #엔 sout에 출력해서  안쓰는게좋다
+        format_sql: true
+        use_sql_comments : true #JPQL 보고싶다면
+        #default_batch_fetch_size: 100
+  data:
+    web:
+      pageable:
+        default-page-size: 10
+        max-page-size: 2000
+logging:
+  level:
+    org.hibernate.SQL: debug #logger 출력
+    # org.hibernate.type: trace
+
+
+
