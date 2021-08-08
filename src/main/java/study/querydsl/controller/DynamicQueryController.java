@@ -19,9 +19,9 @@ public class DynamicQueryController {
     private final MemberJpaRepository memberJpaRepository;
 
 
-    @GetMapping("api/v1/search")
+    @GetMapping("api/v1/members")
     public ResponseEntity<List<MemberTeamDto>> searchType(@RequestBody MemberSearchCondition searchCondition){
-       return new ResponseEntity<>(memberJpaRepository.searchTeamMemberWhereType(searchCondition),HttpStatus.OK);
+       return new ResponseEntity<>(memberJpaRepository.search(searchCondition),HttpStatus.OK);
     }
 
 }
