@@ -19,7 +19,7 @@ import static study.querydsl.entity.QTeam.team;
 
 @Repository
 public class MemberTestRepository extends Querydsl4RepositorySupport {
-    public MemberTestRepository() {
+   /* public MemberTestRepository() {
         super(Member.class);
     }
 
@@ -63,9 +63,9 @@ public class MemberTestRepository extends Querydsl4RepositorySupport {
         );
     }
 
-    /**
+    *//**
      *  위와같지만 카운트쿼리 분리
-     */
+     *//*
     public Page<Member> applyPagination2(MemberSearchCondition condition, Pageable pageable){
 
         //컨텐츠용쿼리
@@ -108,6 +108,6 @@ public class MemberTestRepository extends Querydsl4RepositorySupport {
     private BooleanExpression ageLoe(Integer ageLoe) {
         //return ageLoe != null ? member.age.loe(ageLoe) : null;
         return Optional.ofNullable(ageLoe).map(member.age::loe).orElse(null);
-    }
+    }*/
 
 }

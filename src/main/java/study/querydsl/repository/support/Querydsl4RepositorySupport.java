@@ -23,7 +23,7 @@ import java.util.function.Function;
 
 @Repository
 public class Querydsl4RepositorySupport {
-    private final Class domainClass;
+   /* private final Class domainClass;
     private Querydsl querydsl;
     private EntityManager entityManager;
     private JPAQueryFactory queryFactory;
@@ -84,5 +84,5 @@ public class Querydsl4RepositorySupport {
         List<T> content = getQuerydsl().applyPagination(pageable, jpaContentQuery).fetch();
         JPAQuery countResult = countQuery.apply(getQueryFactory());
         return PageableExecutionUtils.getPage(content, pageable, countResult::fetchCount);
-    }
+    }*/
 }

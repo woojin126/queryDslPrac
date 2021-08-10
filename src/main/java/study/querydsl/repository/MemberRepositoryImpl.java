@@ -6,6 +6,7 @@ import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -16,6 +17,8 @@ import study.querydsl.dto.MemberTeamDto;
 import study.querydsl.dto.QMemberTeamDto;
 import study.querydsl.entity.Member;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,14 +26,11 @@ import static study.querydsl.entity.QMember.member;
 import static study.querydsl.entity.QTeam.team;
 
 //클래명이 중요 MemberRepository + Impl 규칙임
-public class MemberRepositoryImpl extends QuerydslRepositorySupport implements MemberRepositoryCustom{
+public class MemberRepositoryImpl implements MemberRepositoryCustom{
 
     private final JPAQueryFactory queryFactory;
-
-
-    public MemberRepositoryImpl(Class<?> domainClass, JPAQueryFactory queryFactory) {
-        super(domainClass);
-        this.queryFactory = queryFactory;
+    public MemberRepositoryImpl(EntityManager em) {
+        this.queryFactory = new JPAQueryFactory(em);
     }
 
     public List<MemberTeamDto> search(MemberSearchCondition condition){

@@ -22,17 +22,17 @@ public class DynamicQueryController {
     private final MemberJpaRepository memberJpaRepository;
     private final MemberRepository memberRepository;
 
-    @GetMapping("api/v1/members")
+    @GetMapping("/api/v1/members")
     public ResponseEntity<List<MemberTeamDto>> searchType(@RequestBody MemberSearchCondition searchCondition){
        return new ResponseEntity<>(memberJpaRepository.search(searchCondition),HttpStatus.OK);
     }
 
-    @GetMapping("api/v2/members")
+    @GetMapping("/api/v2/members")
     public ResponseEntity<Page<MemberTeamDto>> searchPageSimple(@RequestBody MemberSearchCondition condition, Pageable pageable){
         return new ResponseEntity<>(memberRepository.searchPageSimple(condition,pageable),HttpStatus.OK);
     }
 
-    @GetMapping("api/v3/members")
+    @GetMapping("/api/v3/members")
     public ResponseEntity<Page<MemberTeamDto>> searchPageComplex(@RequestBody MemberSearchCondition condition, Pageable pageable){
         return new ResponseEntity<>(memberRepository.searchPageComplex(condition,pageable),HttpStatus.OK);
     }
